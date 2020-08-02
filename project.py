@@ -5,7 +5,7 @@ from keras.layers import Dense, Dropout, Flatten
 from keras.layers import Conv2D, MaxPooling2D
 import os
 import sys,getopt
-def train(epoch):
+def train(epoch,layer):
 	img_rows, img_cols = 28, 28
 	num_classes = 10
 	batch_size = 16
@@ -21,8 +21,12 @@ def train(epoch):
 	y_test = keras.utils.to_categorical(y_test, num_classes)
 	model = Sequential()
 	model.add(Conv2D(16, kernel_size=(3, 3),
-                     activation='relu',
-                     input_shape=input_shape))
+                             activation='relu',
+                             input_shape=input_shape))
+	if(layer>1):
+		model.add(Conv2D(16, kernel_size=(3, 3),
+					activation='relu',
+					input_shape=input_shape))
 	model.add(MaxPooling2D(pool_size=(2, 2)))
 	model.add(Flatten())
 	model.add(Dense(128, activation='relu'))
@@ -38,15 +42,16 @@ def train(epoch):
 	accuracy = model.evaluate(x_test, y_test, verbose=0)
 	accuracy = accuracy[1]*100
 	# storing accuracy
-	os.system("sudo touch /code/accuracy.txt")
+	os.system(" touch /code/accuracy.txt")
 	os.system("echo {} > /code/accuracy.txt".format(accuracy))
 	# saving the model to send to the client
 	model.save('/code/model.h5')
 
 def main(argv):
 	epoch=''
+	layer=''
 	try:
-		opts, args = getopt.getopt(argv,"e:",["epoch="])
+		opts, args = getopt.getopt(argv,"e:l:",["epoch=","layer="])
 		print("opts"+str(opts))
 	except getopt.GetoptError:
 		print('project.py -e '+ epoch )
@@ -56,12 +61,15 @@ def main(argv):
 		print("arg=="+str(arg))
 		if opt in ("-e", "--epoch"):
 			epoch = arg
+		elif opt in ("-l", "--layer"):
+			layer = arg
 	print('epoch is '+ epoch)
-	if(epoch==''):
-		print('epoch is null')
+	print('layer is '+layer)
+	if(epoch=='' or layer ==''):
+		print('epoch/layer is null')
 		sys.exit(2) 
 
-    train(epoch)
+	train(int(epoch),int(layer))
 
 if __name__ == "__main__":
    main(sys.argv[1:])
